@@ -1,4 +1,4 @@
-ros_opcua_msgs/Address node
+Address node
 string callback_topic
 ---
 bool success
