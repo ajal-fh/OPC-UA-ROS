@@ -4,12 +4,35 @@ import sys
 import rospy
 
 
+from sensor_msgs.msg import Joy
+from std_msgs.msg import Int16
+from std_msgs.msg import Bool
 
 from teleop_rover.srv import *
 from teleop_rover.msg import *
 
 node = Address()
 data= TypeValue()
+
+
+rospy.init_node('teleop_opcua',anonymous=True)
+
+speed_pwm = Int16()
+reverse_bool = Bool()
+
+def callback(data_1):
+	#print 	data.axes[2]
+	#print data.buttons[3]
+	if data_1.buttons[3] == 1:
+		speed_pwm.data = 255
+		reverse_bool.data = False
+		
+	elif data_1.buttons[0] == 1:
+		speed_pwm.data = 255
+		reverse_bool.data = True
+	else:
+		speed_pwm.data = 0
+
 
 def disconnect_client():
 	
@@ -47,11 +70,41 @@ def write_client(node,data):
 
 
 if __name__ == "__main__":
-	print "hola"
+'''	print "hola"
 	node.nodeId = 'ns=2;i=8'
 	node.qualifiedName = 'MyVariable'
 
-	data.type = 'float64'
+	data.type = 'int8'
+	data.bool_d = False
+	data.int8_d = speed_pwm.data
+	data.uint8_d = 0
+	data.int16_d = 0
+	data.uint16_d = 0
+	data.int32_d = 0
+	data.uint32_d = 0
+	data.int64_d =0
+	data.uint64_d = 0
+	data.float_d = 0.0
+	data.double_d =4.1
+	data.string_d =''
+
+	write_client(node,data)
+#to connect
+	endpoint = "opc.tcp://localhost:4840"	
+	connect_client(endpoint)
+#to disconnect	
+	disconnect_client()
+'''
+rospy.Subscriber("joy",Joy,callback)
+pub1 = rospy.Publisher('speed_pwm',Int16,queue_size=10)
+pub2 = rospy.Publisher('reverse_bool',Bool,queue_size=10) 
+rate =rospy.Rate(10)
+
+while not rospy.is_shutdown():
+	node.nodeId = 'ns=2;i=8'
+	node.qualifiedName = 'MyVariable'
+
+	data.type = 'int8'
 	data.bool_d = False
 	data.int8_d = 0
 	data.uint8_d = 0
@@ -65,13 +118,9 @@ if __name__ == "__main__":
 	data.double_d =4.1
 	data.string_d =''
 
-	write_client(node,data)
-'''#to connect
-	endpoint = "opc.tcp://localhost:4840"	
-	connect_client(endpoint)
-#to disconnect	
-	disconnect_client()'''
- 
-
+	write_client(node,data)	
+	pub1.publish(speed_pwm)
+	pub2.publish(reverse_bool)
+	rate.sleep()
 
 
